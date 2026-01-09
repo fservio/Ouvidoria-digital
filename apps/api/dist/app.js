@@ -1,0 +1,13 @@
+import { Hono } from 'hono';
+import { auth } from './routes/auth.js';
+import tickets from './routes/tickets.js';
+import notificar from './routes/notificar.js';
+import { health } from './routes/health.js';
+import relatorios from './routes/relatorios.js';
+const app = new Hono();
+app.route('/auth', auth);
+app.route('/tickets', tickets);
+app.route('/health', health);
+app.route('/relatorios', relatorios);
+app.route('/notificar', notificar);
+export default app;

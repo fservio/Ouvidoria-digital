@@ -7,6 +7,8 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "rootDir": "src",
+    "outDir": "dist",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
@@ -14,5 +16,5 @@
     "types": ["node", "@cloudflare/workers-types"],
     "skipLibCheck": true
   },
-  "include": ["src", "src/index.ts", "../index.ts"]
+  "include": ["src"]
 }
