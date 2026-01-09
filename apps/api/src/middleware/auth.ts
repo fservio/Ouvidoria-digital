@@ -1,37 +1,26 @@
-import type { MiddlewareHandler } from 'hono';
-import { verify } from 'hono/jwt';
+import { verify } from 'hono/jwt'
+import type { MiddlewareHandler } from 'hono'
 
-export interface AuthUser {
-  id: string;
-  papel: 'cidadao' | 'secretaria' | 'gestor';
-  setor?: string | null;
-  email: string;
+export const authMiddleware: MiddlewareHandler = async (c, next) => {
+  const token = c.req.header('Authorization')?.replace('Bearer ', '')
+  if (!token) return c.json({ error: 'Token ausente' }, 401)
+
+  try {
+    const payload = await verify(token, c.env.JWT_SECRET)
+    c.set('user', payload)
+    await next()
+  } catch {
+    return c.json({ error: 'Token inválido' }, 401)
+  }
 }
 
-export const authMiddleware = (): MiddlewareHandler => {
+// Role-based access control (opcional por rota)
+export const requireRole = (roles: string[]): MiddlewareHandler => {
   return async (c, next) => {
-    const authHeader = c.req.header('authorization');
-    if (!authHeader) {
-      return c.json({ error: 'Token ausente' }, 401);
+    const user = c.get('user') as { papel: string }
+    if (!roles.includes(user.papel)) {
+      return c.json({ error: 'Acesso negado' }, 403)
     }
-
-    const token = authHeader.replace('Bearer ', '');
-    try {
-      const payload = (await verify(token, c.env.JWT_SECRET)) as AuthUser;
-      c.set('user', payload);
-      await next();
-    } catch (error) {
-      return c.json({ error: 'Token invǭlido' }, 401);
-    }
-  };
-};
-
-export const requireRole = (roles: AuthUser['papel'][]): MiddlewareHandler => {
-  return async (c, next) => {
-    const user = c.get('user') as AuthUser | undefined;
-    if (!user || !roles.includes(user.papel)) {
-      return c.json({ error: 'Acesso negado' }, 403);
-    }
-    await next();
-  };
-};
+    await next()
+  }
+}

@@ -13,6 +13,9 @@ import {
 } from './schemas.js';
 import { classifyTicket, generateResponse } from './services/openai.js';
 import { toCsv } from './utils/csv.js';
+import { auth } from './routes/auth'
+
+app.route('/auth', auth)
 
 interface Env {
   Bindings: {
