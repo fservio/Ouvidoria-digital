@@ -1,23 +1,31 @@
 import { Hono } from 'hono'
-import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
+import { ticketCreateSchema } from '@/schemas'
 import { authMiddleware } from '../middleware/authMiddleware'
+import { v4 as uuidv4 } from 'uuid'
+import type { Variables } from '../types/hono'
 
-export const tickets = new Hono()
+const tickets = new Hono<{ Variables: Variables }>()
 
 tickets.use('*', authMiddleware)
 
-const ticketSchema = z.object({
-  tipo: z.enum(['educacao', 'saude', 'transito', 'infraestrutura']),
-  descricao: z.string().min(10)
-})
-
 tickets.post(
   '/',
-  zValidator('json', ticketSchema),
+  zValidator('json', ticketCreateSchema),
   async (c) => {
-    const input = c.req.valid('json')
-    // inserir ticket no banco
-    return c.json({ status: 'ok', ticket: input })
+    const { mensagem, setor } = c.req.valid('json')
+    const user = c.get('user')
+
+    const id = uuidv4()
+
+    await c.env.DB.prepare(
+      `INSERT INTO tickets (id, usuario_id, tipo, descricao) VALUES (?, ?, ?, ?)`
+    )
+      .bind(id, user.id, setor ?? 'outros', mensagem)
+      .run()
+
+    return c.json({ ok: true, id })
   }
 )
+
+export default tickets

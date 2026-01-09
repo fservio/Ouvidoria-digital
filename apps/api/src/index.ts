@@ -1,21 +1,25 @@
 import { Hono } from 'hono'
 import { authMiddleware, requireRole } from './middleware/authMiddleware'
-import { handle } from 'hono/cloudflare'
+import type { Variables } from './types/hono'
 
-const app = new Hono()
+// 👇 AQUI ESTÁ A CORREÇÃO
+const app = new Hono<{ Variables: Variables }>()
 
 // Rota pública
-app.get('/ping', c => c.text('pong'))
+app.get('/ping', (c) => c.text('pong'))
 
 // Rota protegida
-app.get('/me', authMiddleware, c => {
-  const user = c.get('user')
+app.get('/me', authMiddleware, (c) => {
+  const user = c.get('user') // ✅ agora funciona
   return c.json({ user })
 })
 
 // Rota só para gestores
-app.get('/admin', authMiddleware, requireRole(['gestor']), c => {
-  return c.text('Área restrita a gestores.')
-})
+app.get(
+  '/admin',
+  authMiddleware,
+  requireRole(['gestor']),
+  (c) => c.text('Área restrita a gestores.')
+)
 
-export default handle(app)
+export default app
