@@ -11,7 +11,12 @@ type Ticket = {
   created_at: string;
 };
 
+import AdminApp from './admin/AdminApp'
+
 const App = () => {
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+    return <AdminApp />
+  }
   const [nome, setNome] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [protocolo, setProtocolo] = useState('');
