@@ -1,7 +1,9 @@
 {
   "name": "ouvidoria-digital",
   "private": true,
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "npm-run-all -p dev:api dev:web",
     "dev:api": "npm run dev --workspace @ouvidoria/api",

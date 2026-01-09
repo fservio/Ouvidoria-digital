@@ -14,7 +14,6 @@ export const authMiddleware: MiddlewareHandler = async (c, next) => {
   }
 }
 
-// Role-based access control (opcional por rota)
 export const requireRole = (roles: string[]): MiddlewareHandler => {
   return async (c, next) => {
     const user = c.get('user') as { papel: string }

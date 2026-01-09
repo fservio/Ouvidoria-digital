@@ -1,16 +1,18 @@
 name = "ouvidoria-digital"
-main = "src/app.ts"
 compatibility_date = "2026-01-09"
+compatibility_flags = ["nodejs_compat"]
+main = "src/index.ts"
+node_compat = true
+workers_dev = true
+account_id = "SEU_ACCOUNT_ID"
+usage_model = "bundled"
+route = ""
+zone_id = ""
+
+[vars]
+JWT_SECRET = "4dahiJ2rsqS4SgaXcreNOkYOgUpENS"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "ouvidoria"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "xxxxxx"
-
-[vars]
-JWT_SECRET = "sua_chave"
-OPENAI_API_KEY = "sua_api_openai"
-N8N_SECRET = "token_webhook"
+database_name = "ouvidoria_d1"
+database_id = "7c30213f-9abf-4e90-9d8f-d8e5f5a11375"

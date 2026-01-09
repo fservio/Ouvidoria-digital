@@ -1,25 +1,23 @@
 {
-  "name": "@ouvidoria/web",
+  "name": "ouvidoria-digital",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "wrangler dev",
+    "deploy": "wrangler publish",
+    "validate": "npm test && npm run lint",
+    "lint": "eslint . --ext .ts"
   },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
+ "dependencies": {
+  "hono": "^3.11.3",
+  "zod": "^3.22.4",
+  "uuid": "^9.0.1",
+  "bcrypt-ts": "^1.1.0"
+}
   "devDependencies": {
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.0"
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "vitest": "^0.34.0",
+    "@cloudflare/workers-types": "^4.0.0"
   }
 }
