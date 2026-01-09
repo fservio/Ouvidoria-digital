@@ -1,0 +1,25 @@
+{
+  "name": "@ouvidoria/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/app.ts",
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.toml",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.4.2",
+    "bcryptjs": "^2.4.3",
+    "hono": "^4.6.5",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.11.30",
+    "@vitest/coverage-v8": "^1.6.1",
+    "vitest": "^1.6.0"
+  }
+}

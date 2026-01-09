@@ -1,0 +1,39 @@
+CREATE TABLE IF NOT EXISTS tickets (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL,
+  mensagem TEXT NOT NULL,
+  setor TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'novo',
+  prioridade TEXT,
+  resposta TEXT,
+  user_id TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  senha_hash TEXT NOT NULL,
+  papel TEXT NOT NULL,
+  setor TEXT,
+  criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS avaliacoes (
+  id TEXT PRIMARY KEY,
+  ticket_id TEXT NOT NULL,
+  nota INTEGER NOT NULL,
+  comentario TEXT,
+  criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS log_acoes (
+  id TEXT PRIMARY KEY,
+  ticket_id TEXT NOT NULL,
+  user_id TEXT,
+  acao TEXT NOT NULL,
+  detalhe TEXT,
+  criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+);
