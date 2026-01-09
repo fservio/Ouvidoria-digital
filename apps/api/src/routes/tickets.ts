@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { ticketCreateSchema } from '@/schemas'
+import { ticketCreateSchema } from '../schemas/ticket'
 import { authMiddleware } from '../middleware/authMiddleware'
 import { v4 as uuidv4 } from 'uuid'
 import type { Variables } from '../types/hono'

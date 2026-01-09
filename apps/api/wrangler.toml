@@ -1,7 +1,7 @@
 name = "ouvidoria-digital"
 compatibility_date = "2026-01-09"
 compatibility_flags = ["nodejs_compat"]
-main = "src/index.ts"
+main = "/api/index.ts"
 node_compat = true
 workers_dev = true
 account_id = "SEU_ACCOUNT_ID"

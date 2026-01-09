@@ -2,8 +2,8 @@
   "name": "@ouvidoria/api",
   "version": "0.1.0",
   "type": "module",
-  "main": "src/app.ts",
-  "scripts": {
+  "main": "/api/src/app.ts",
+  "scripts": {cd
     "dev": "wrangler dev --config wrangler.toml",
     "test": "vitest run --coverage"
   },
