@@ -8,12 +8,12 @@
     "validate": "npm test && npm run lint",
     "lint": "eslint . --ext .ts"
   },
- "dependencies": {
-  "hono": "^3.11.3",
-  "zod": "^3.22.4",
-  "uuid": "^9.0.1",
-  "bcrypt-ts": "^1.1.0"
-}
+  "dependencies": {
+    "hono": "^3.11.3",
+    "zod": "^3.22.4",
+    "uuid": "^9.0.1",
+    "bcrypt-ts": "^8.0.0"
+  },
   "devDependencies": {
     "typescript": "^5.0.0",
     "eslint": "^8.0.0",
