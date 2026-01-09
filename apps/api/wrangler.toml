@@ -16,3 +16,18 @@ JWT_SECRET = "4dahiJ2rsqS4SgaXcreNOkYOgUpENS"
 binding = "DB"
 database_name = "ouvidoria_d1"
 database_id = "7c30213f-9abf-4e90-9d8f-d8e5f5a11375"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
