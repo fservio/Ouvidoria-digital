@@ -1,7 +1,7 @@
 {
   "name": "ouvidoria-digital",
   "compatibility_date": "2026-01-09",
-  "main": "src/index.ts",
+"main": "apps/api/src/index.ts",
   "observability": {
     "enabled": false,
     "head_sampling_rate": 1,

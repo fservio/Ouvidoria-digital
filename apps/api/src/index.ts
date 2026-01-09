@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { authMiddleware, requireRole } from './src/middleware/authMiddleware'
-import type { Variables } from './src/types/hono'
+import { authMiddleware, requireRole } from './middleware/authMiddleware'
+import type { Variables } from './types/hono'
 
 // 👇 AQUI ESTÁ A CORREÇÃO
 const app = new Hono<{ Variables: Variables }>()
