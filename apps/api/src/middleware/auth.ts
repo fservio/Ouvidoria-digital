@@ -1,10 +1,11 @@
 import type { MiddlewareHandler } from 'hono';
-import jwt from 'jsonwebtoken';
+import { verify } from 'hono/jwt';
 
 export interface AuthUser {
   id: string;
   papel: 'cidadao' | 'secretaria' | 'gestor';
   setor?: string | null;
+  email: string;
 }
 
 export const authMiddleware = (): MiddlewareHandler => {
@@ -16,11 +17,11 @@ export const authMiddleware = (): MiddlewareHandler => {
 
     const token = authHeader.replace('Bearer ', '');
     try {
-      const payload = jwt.verify(token, c.env.JWT_SECRET) as AuthUser;
+      const payload = (await verify(token, c.env.JWT_SECRET)) as AuthUser;
       c.set('user', payload);
       await next();
     } catch (error) {
-      return c.json({ error: 'Token inválido' }, 401);
+      return c.json({ error: 'Token invǭlido' }, 401);
     }
   };
 };

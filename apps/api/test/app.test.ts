@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import app from '../src/app.js';
 import bcrypt from 'bcryptjs';
 
@@ -88,10 +88,9 @@ const buildEnv = () => ({
 
 describe('Ouvidoria API', () => {
   beforeEach(() => {
-    global.fetch = async () =>
-      new Response(
-        JSON.stringify({ choices: [{ message: { content: 'saude' } }] })
-      ) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', async () =>
+      new Response(JSON.stringify({ choices: [{ message: { content: 'saude' } }] }))
+    );
   });
 
   it('creates a ticket with AI classification', async () => {

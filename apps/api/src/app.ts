@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { sign } from 'hono/jwt';
 import { authMiddleware, requireRole, type AuthUser } from './middleware/auth.js';
 import { rateLimit } from './middleware/rateLimit.js';
 import {
@@ -35,7 +35,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }));
 
 app.post('/auth/login', zValidator('json', authLoginSchema), async (c) => {
   const { email, senha } = c.req.valid('json');
-  const user = await c.env.DB.prepare('SELECT id, nome, senha_hash, papel, setor FROM users WHERE email = ?')
+  const user = await c.env.DB.prepare('SELECT id, nome, senha_hash, papel, setor, email FROM users WHERE email = ?')
     .bind(email)
     .first();
 
@@ -51,10 +51,15 @@ app.post('/auth/login', zValidator('json', authLoginSchema), async (c) => {
   const payload: AuthUser = {
     id: String(user.id),
     papel: user.papel as AuthUser['papel'],
-    setor: user.setor ? String(user.setor) : null
+    setor: user.setor ? String(user.setor) : null,
+    email: String(user.email)
   };
 
-  const token = jwt.sign(payload, c.env.JWT_SECRET, { expiresIn: '8h' });
+  const expiresInSeconds = 8 * 60 * 60;
+  const token = await sign(
+    { ...payload, exp: Math.floor(Date.now() / 1000) + expiresInSeconds },
+    c.env.JWT_SECRET
+  );
   return c.json({ token, user: payload });
 });
 
