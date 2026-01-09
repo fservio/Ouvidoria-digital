@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler publish",
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler publish",
     "validate": "npm test && npm run lint",
     "lint": "eslint . --ext .ts"
   },
@@ -12,12 +12,18 @@
     "hono": "^3.11.3",
     "zod": "^3.22.4",
     "uuid": "^9.0.1",
-    "bcrypt-ts": "^8.0.0"
+    "bcrypt-ts": "^8.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.1"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
     "eslint": "^8.0.0",
     "vitest": "^0.34.0",
-    "@cloudflare/workers-types": "^4.0.0"
+    "@cloudflare/workers-types": "^4.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/react-router-dom": "^5.3.3"
   }
 }
