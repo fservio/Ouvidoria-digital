@@ -1,18 +1,16 @@
 name = "ouvidoria-digital"
-compatibility_date = "2026-01-08"
 main = "src/app.ts"
+compatibility_date = "2026-01-09"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "ouvidoria"
 
-tables = ["tickets", "users", "avaliacoes", "log_acoes"]
-
 [[kv_namespaces]]
 binding = "KV"
-id = "xxxx"
+id = "xxxxxx"
 
 [vars]
-JWT_SECRET = "chave_segura"
-OPENAI_API_KEY = "sk-..."
-N8N_SECRET = "token_secreto"
+JWT_SECRET = "sua_chave"
+OPENAI_API_KEY = "sua_api_openai"
+N8N_SECRET = "token_webhook"
