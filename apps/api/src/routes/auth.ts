@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
 import { z } from 'zod'
-import { sql } from 'drizzle-orm'
-import { hash, compare } from 'bcrypt-ts' // Se usar login, ou troque por qualquer hash client-side
+import { compareSync } from 'bcryptjs'
+import type { Bindings } from '../types/hono.js'
 
-export const auth = new Hono()
+export const auth = new Hono<{ Bindings: Bindings }>()
 
 // Schema para login
 const loginSchema = z.object({
@@ -20,12 +20,12 @@ auth.post('/login', async (c) => {
   const { email, senha } = parsed.data
 
   const result = await c.env.DB.prepare(
-    'SELECT * FROM users WHERE email = ? LIMIT 1'
+    'SELECT id, nome, senha_hash FROM users WHERE email = ? LIMIT 1'
   ).bind(email).first()
 
   if (!result) return c.json({ error: 'Usuário não encontrado' }, 404)
 
-  const valid = await compare(senha, result.senha_hash)
+  const valid = compareSync(senha, String(result.senha_hash))
   if (!valid) return c.json({ error: 'Senha incorreta' }, 401)
 
   const token = await sign({

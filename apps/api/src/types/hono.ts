@@ -10,4 +10,6 @@ export type Variables = {
 export type Bindings = {
   DB: D1Database
   JWT_SECRET: string
+  OPENAI_API_KEY: string
+  N8N_SECRET: string
 }

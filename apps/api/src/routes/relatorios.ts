@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { authMiddleware, requireRole } from '../middleware/authMiddleware'
-import type { Variables, Bindings } from '../types/hono'
+import { authMiddleware, requireRole } from '../middleware/authMiddleware.js'
+import type { Variables, Bindings } from '../types/hono.js'
 
 const relatorios = new Hono<{ Bindings: Bindings; Variables: Variables }>()
 

@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/middleware/rateLimit.ts</title>
+    <title>Code coverage report for src/middleware/authMiddleware.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/middleware</a> rateLimit.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/middleware</a> authMiddleware.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>3/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">21.42% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>3/14</span>
             </div>
         
             
@@ -88,68 +88,56 @@
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
 <a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { MiddlewareHandler } from 'hono';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { verify } from 'hono/jwt'
+import type { MiddlewareHandler } from 'hono'
 &nbsp;
-const WINDOW_SECONDS = <span class="cstat-no" title="statement not covered" >60;</span>
-const MAX_REQUESTS = <span class="cstat-no" title="statement not covered" >60;</span>
+export const authMiddleware: MiddlewareHandler = <span class="fstat-no" title="function not covered" >async (c</span>, next) =&gt; {
+  const token = <span class="cstat-no" title="statement not covered" >c.req.header('Authorization')?.replace('Bearer ', '')</span>
+<span class="cstat-no" title="statement not covered" >  if (!token) <span class="cstat-no" title="statement not covered" >return c.json({ error: 'Token ausente' }, 401)</span></span>
 &nbsp;
-export const rateLimit = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(): MiddlewareHandler =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >  return <span class="fstat-no" title="function not covered" >async (c</span>, next) =&gt; {</span>
-    const ip = <span class="cstat-no" title="statement not covered" >c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';</span>
-    const key = <span class="cstat-no" title="statement not covered" >`rate:${ip}`;</span>
-    const now = <span class="cstat-no" title="statement not covered" >Math.floor(Date.now() / 1000);</span>
-    const current = <span class="cstat-no" title="statement not covered" >await c.env.KV.get(key, { type: 'json' }) as { count: number; reset: number } | null;</span>
-<span class="cstat-no" title="statement not covered" >    if (!current || current.reset &lt; now) {</span>
-<span class="cstat-no" title="statement not covered" >      await c.env.KV.put(key, JSON.stringify({ count: 1, reset: now + WINDOW_SECONDS }), {</span>
-        expirationTtl: WINDOW_SECONDS
-      });
-<span class="cstat-no" title="statement not covered" >      await next();</span>
-<span class="cstat-no" title="statement not covered" >      return;</span>
+<span class="cstat-no" title="statement not covered" >  try {</span>
+    const payload = <span class="cstat-no" title="statement not covered" >await verify(token, c.env.JWT_SECRET)</span>
+<span class="cstat-no" title="statement not covered" >    c.set('user', payload)</span>
+<span class="cstat-no" title="statement not covered" >    await next()</span>
+  } catch {
+<span class="cstat-no" title="statement not covered" >    return c.json({ error: 'Token inválido' }, 401)</span>
+  }
+}
+&nbsp;
+export const requireRole = (roles: string[]): MiddlewareHandler =&gt; {
+  return <span class="fstat-no" title="function not covered" >async (c</span>, next) =&gt; {
+    const user = <span class="cstat-no" title="statement not covered" >c.get('user') as { papel: string }</span>
+<span class="cstat-no" title="statement not covered" >    if (!roles.includes(user.papel)) {</span>
+<span class="cstat-no" title="statement not covered" >      return c.json({ error: 'Acesso negado' }, 403)</span>
     }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    if (current.count &gt;= MAX_REQUESTS) {</span>
-<span class="cstat-no" title="statement not covered" >      return c.json({ error: 'Rate limit excedido' }, 429);</span>
-    }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    await c.env.KV.put(key, JSON.stringify({ count: current.count + 1, reset: current.reset }), {</span>
-      expirationTtl: current.reset - now
-    });
-<span class="cstat-no" title="statement not covered" >    await next();</span>
-  };
-};
+<span class="cstat-no" title="statement not covered" >    await next()</span>
+  }
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import { auth } from './routes/auth'
-import tickets from './routes/tickets'
-import { health } from './routes/health'
-import relatorios from './routes/relatorios'
+import { auth } from './routes/auth.js'
+import tickets from './routes/tickets.js'
+import notificar from './routes/notificar.js'
+import { health } from './routes/health.js'
+import relatorios from './routes/relatorios.js'
 
 export interface Env {
   // Add your environment/service bindings here, e.g.:
@@ -18,5 +19,6 @@ app.route('/auth', auth)
 app.route('/tickets', tickets)
 app.route('/health', health)
 app.route('/relatorios', relatorios)
+app.route('/notificar', notificar)
 
 export default app

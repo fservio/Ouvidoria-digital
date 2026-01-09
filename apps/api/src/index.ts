@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { authMiddleware, requireRole } from './middleware/authMiddleware'
-import type { Variables } from './types/hono'
+import { authMiddleware, requireRole } from './middleware/authMiddleware.js'
+import type { Variables } from './types/hono.js'
 
 // App Hono principal
 const app = new Hono<{ Variables: Variables }>()

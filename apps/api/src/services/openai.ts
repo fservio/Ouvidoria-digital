@@ -1,4 +1,4 @@
-import { aiClassificationSchema, aiResponseSchema } from '../schemas.js';
+import { aiClassificationSchema, aiResponseSchema } from '../schemas/ai.js';
 
 interface OpenAIMessage {
   role: 'system' | 'user';
