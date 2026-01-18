@@ -259,6 +259,25 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_audit_case ON audit_logs(entity_type, entity_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs(created_at DESC);
 
+-- ============================================
+-- AGENT RUNS (IA)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS agent_runs (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL,
+  message_id TEXT,
+  request_json JSON,
+  response_json JSON,
+  confidence REAL,
+  risk_level TEXT,
+  status TEXT DEFAULT 'completed',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (case_id) REFERENCES cases(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_runs_case ON agent_runs(case_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS security_events (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL,

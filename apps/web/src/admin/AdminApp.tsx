@@ -38,6 +38,15 @@ const AdminApp: React.FC = () => {
     );
   }
 
+  if (path.startsWith('/integrations/n8n')) {
+    const IntegrationsN8n = React.lazy(() => import('./IntegrationsN8n'));
+    return (
+      <Suspense fallback={<div className="p-6">Carregando...</div>}>
+        <IntegrationsN8n token={token!} onLogout={logout} />
+      </Suspense>
+    );
+  }
+
   if (path.startsWith('/templates')) {
     const Templates = React.lazy(() => import('./Templates'));
     return (

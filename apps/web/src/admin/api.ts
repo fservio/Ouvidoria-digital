@@ -82,7 +82,7 @@ export const api = {
       const query = params ? '?' + new URLSearchParams(params).toString() : '';
       return request<{ cases: Case[]; pagination: { total: number } }>(`/api/v1/cases${query}`);
     },
-    get: (id: string) => request<Case & { messages: Message[]; tags: string[]; audit_trail: unknown[]; missing_fields: Array<{ field_name: string }>; secretariat_id?: string | null; queue_id?: string | null; citizen?: { id: string; full_name: string | null; email: string | null; phone_e164: string | null; whatsapp_wa_id: string | null; instagram_user_id: string | null; instagram_username: string | null } | null }>(`/api/v1/cases/${id}`),
+    get: (id: string) => request<Case & { messages: Message[]; tags: string[]; audit_trail: unknown[]; missing_fields: Array<{ field_name: string }>; secretariat_id?: string | null; queue_id?: string | null; citizen?: { id: string; full_name: string | null; email: string | null; phone_e164: string | null; whatsapp_wa_id: string | null; instagram_user_id: string | null; instagram_username: string | null } | null; agent_run?: { id: string; confidence: number | null; risk_level: string | null; reply_preview: string | null } | null }>(`/api/v1/cases/${id}`),
     update: (id: string, data: Partial<Case> & { queue_id?: string | null; assigned_to?: string | null }) =>
       request(`/api/v1/cases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     sendMessage: (id: string, text: string, isInternal = false) =>
@@ -141,6 +141,10 @@ export const api = {
     updateMeta: (payload: Record<string, unknown>) =>
       request('/api/v1/integrations/meta', { method: 'PUT', body: JSON.stringify(payload) }),
     testMeta: () => request('/api/v1/integrations/meta/test', { method: 'POST' }),
+    getN8n: () => request('/api/v1/integrations/n8n'),
+    updateN8n: (payload: Record<string, unknown>) =>
+      request('/api/v1/integrations/n8n', { method: 'POST', body: JSON.stringify(payload) }),
+    testN8n: () => request('/api/v1/integrations/n8n/test', { method: 'POST' }),
   },
 
   templates: {
@@ -149,5 +153,10 @@ export const api = {
       request(`/api/v1/templates/${key}/version`, { method: 'POST', body: JSON.stringify({ content }) }),
     activate: (key: string, id: string) =>
       request(`/api/v1/templates/${key}/activate`, { method: 'POST', body: JSON.stringify({ id }) }),
+  },
+
+  agent: {
+    run: (caseId: string, messageId?: string) =>
+      request('/api/v1/agent/run', { method: 'POST', body: JSON.stringify({ case_id: caseId, message_id: messageId }) }),
   },
 };

@@ -45,6 +45,33 @@ export function missingFieldsByChannel(channel: string, citizen: CitizenProfile 
   return missing;
 }
 
+export async function findOrCreateCitizenByInstagram(env: Env, instagramUserId: string, instagramUsername: string | null): Promise<CitizenProfile> {
+  const existing = await env.DB
+    .prepare('SELECT * FROM citizen_profiles WHERE instagram_user_id = ? LIMIT 1')
+    .bind(instagramUserId)
+    .first();
+
+  if (existing) {
+    return existing as unknown as CitizenProfile;
+  }
+
+  const id = crypto.randomUUID();
+  await env.DB
+    .prepare(
+      `INSERT INTO citizen_profiles (id, instagram_user_id, instagram_username, consent_source)
+       VALUES (?, ?, ?, ?)`
+    )
+    .bind(id, instagramUserId, instagramUsername, 'instagram')
+    .run();
+
+  const created = await env.DB
+    .prepare('SELECT * FROM citizen_profiles WHERE id = ?')
+    .bind(id)
+    .first();
+
+  return created as unknown as CitizenProfile;
+}
+
 export async function findOrCreateCitizenByWhatsapp(env: Env, waId: string, phoneE164: string | null, fullName: string | null): Promise<CitizenProfile> {
   const existing = await env.DB
     .prepare('SELECT * FROM citizen_profiles WHERE whatsapp_wa_id = ? LIMIT 1')

@@ -548,6 +548,29 @@ function CaseDetailModal({ case: caseItem, onClose, onUpdated, canEdit }: { case
                 </div>
               )}
 
+              {detail?.agent_run && (
+                <div className="rounded border border-slate-200 bg-white p-4">
+                  <div className="text-xs font-medium text-slate-500">IA / Agente</div>
+                  <div className="mt-2 grid gap-2 text-sm">
+                    <div><span className="text-slate-500">Confianca:</span> {detail.agent_run.confidence ?? '-'}</div>
+                    <div><span className="text-slate-500">Risco:</span> {detail.agent_run.risk_level ?? '-'}</div>
+                    <div><span className="text-slate-500">Resposta sugerida:</span> {detail.agent_run.reply_preview ?? '-'}</div>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                      disabled={!canEdit}
+                      onClick={async () => {
+                        await api.agent.run(caseItem.id, detail.messages?.[0]?.id);
+                        await loadDetail();
+                      }}
+                    >
+                      Rodar IA
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-medium text-gray-500">Alterar status</label>

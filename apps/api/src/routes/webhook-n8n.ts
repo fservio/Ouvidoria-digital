@@ -28,25 +28,56 @@ n8nWebhook.post('/actions', async (c) => {
   const action = payload.action as string | undefined;
   const data = payload.data as Record<string, unknown> | undefined;
 
-  if (!action || !data) {
+  if ((!action || !data) && !Array.isArray(payload.actions)) {
     return c.json({ error: 'Invalid payload' }, 400);
   }
 
   const allowlist = await getAllowlist(c.env.DB);
-  if (!allowlist.includes(action)) {
+  if (action && !allowlist.includes(action)) {
     await logAction(c.env.DB, 'integration', 'n8n', 'action_blocked', {}, null, {
       action,
     });
     return c.json({ error: 'Action not allowed' }, 403);
   }
 
-  await applyAction(action, data, c.env);
+  const config = await getN8nConfig(c.env.DB);
+  const allowed = config?.allowed_actions as string[] | undefined;
+  const autoSendEnabled = Boolean((config as { auto_send_enabled?: boolean } | null)?.auto_send_enabled);
+  const handoffThreshold = Number((config as { handoff_threshold?: number } | null)?.handoff_threshold ?? 0.7);
+
+  const actions = Array.isArray(payload.actions) ? payload.actions : [payload];
+  const applied: string[] = [];
+
+  const confidence = typeof payload.confidence === 'number' ? payload.confidence : null;
+
+  for (const actionItem of actions) {
+    const actionType = (actionItem as { type?: string }).type || action;
+    if (!actionType) continue;
+
+    if (allowed && allowed.length > 0 && !allowed.includes(actionType)) {
+      await logAction(c.env.DB, 'integration', 'n8n', 'action_blocked', {}, null, { action: actionType });
+      continue;
+    }
+
+    if (!autoSendEnabled && (actionType === 'reply_external' || actionType === 'request_info')) {
+      await logAction(c.env.DB, 'integration', 'n8n', 'action_blocked', {}, null, { action: actionType });
+      continue;
+    }
+
+    if (confidence !== null && confidence < handoffThreshold && actionType === 'reply_external') {
+      await logAction(c.env.DB, 'integration', 'n8n', 'action_blocked', {}, null, { action: actionType, reason: 'low_confidence' });
+      continue;
+    }
+
+    await applyAction(actionType, actionItem as Record<string, unknown>, c.env);
+    applied.push(actionType);
+  }
 
   await logAction(c.env.DB, 'integration', 'n8n', 'action_applied', {
     userId: 'integration_bot',
-  }, null, { action, data });
+  }, null, { actions_applied: applied });
 
-  return c.json({ ok: true });
+  return c.json({ ok: true, actions_applied: applied });
 });
 
 async function getAllowlist(db: D1Database): Promise<string[]> {
@@ -59,6 +90,17 @@ async function getAllowlist(db: D1Database): Promise<string[]> {
 
   const config = JSON.parse(String(result.config_encrypted));
   return config.allowed_actions ?? [];
+}
+
+async function getN8nConfig(db: D1Database): Promise<Record<string, unknown> | null> {
+  const result = await db
+    .prepare('SELECT config_encrypted FROM integrations WHERE name = ? AND is_active = 1')
+    .bind('n8n')
+    .first();
+
+  if (!result) return null;
+
+  return JSON.parse(String(result.config_encrypted));
 }
 
 async function applyAction(action: string, data: Record<string, unknown>, env: Env) {

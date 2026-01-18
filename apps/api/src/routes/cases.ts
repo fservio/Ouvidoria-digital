@@ -166,9 +166,30 @@ cases.get('/:id', async (c) => {
     instagram_username: (caseResult as { citizen_instagram_username: string | null }).citizen_instagram_username,
   } : null;
 
+  const agentRun = await c.env.DB
+    .prepare('SELECT id, confidence, risk_level, response_json FROM agent_runs WHERE case_id = ? ORDER BY created_at DESC LIMIT 1')
+    .bind(caseId)
+    .first();
+
+  const parsedAgent = agentRun ? {
+    id: (agentRun as { id: string }).id,
+    confidence: (agentRun as { confidence: number | null }).confidence ?? null,
+    risk_level: (agentRun as { risk_level: string | null }).risk_level ?? null,
+    reply_preview: (() => {
+      try {
+        const responseJson = JSON.parse(String((agentRun as { response_json: string | null }).response_json ?? 'null')) as { actions?: Array<{ type?: string; text?: string }> } | null;
+        const reply = responseJson?.actions?.find((action) => action.type === 'reply_external');
+        return reply?.text ?? null;
+      } catch {
+        return null;
+      }
+    })(),
+  } : null;
+
   return c.json({
     ...caseResult,
     citizen,
+    agent_run: parsedAgent,
     messages: messagesResult.results,
     tags: tagsResult.results,
     missing_fields: missingFieldsResult.results,
