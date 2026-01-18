@@ -19,7 +19,12 @@ export const AdminLayout: React.FC<{ title?: string; children?: React.ReactNode;
         <aside className="col-span-1 rounded bg-white p-4 shadow">
           <nav className="flex flex-col gap-2">
             <a href="/admin/tickets" className="text-sm text-slate-700">Tickets</a>
+            <a href="/admin/integrations/meta" className="text-sm text-slate-700">Integrações</a>
+            <a href="/admin/templates" className="text-sm text-slate-700">Templates</a>
+            <a href="/admin/secretariats" className="text-sm text-slate-700">Secretarias/Filas</a>
+            <a href="/admin/routing-rules" className="text-sm text-slate-700">Regras</a>
             <a href="/admin/users" className="text-sm text-slate-700">Users</a>
+            <a href="/admin/audit" className="text-sm text-slate-700">Auditoria</a>
             <a href="/admin/relatorios" className="text-sm text-slate-700">Relatórios</a>
           </nav>
         </aside>

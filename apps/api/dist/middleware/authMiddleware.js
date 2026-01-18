@@ -15,7 +15,7 @@ export const authMiddleware = async (c, next) => {
 export const requireRole = (roles) => {
     return async (c, next) => {
         const user = c.get('user');
-        if (!roles.includes(user.papel)) {
+        if (!roles.includes(user.role)) {
             return c.json({ error: 'Acesso negado' }, 403);
         }
         await next();

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL ?? '';
+const API_URL = import.meta.env.VITE_API_URL ?? 'https://ouvidoria-digital.fabioservio.workers.dev';
+
 
 type Ticket = {
   id: string;
@@ -19,7 +20,9 @@ const App = () => {
   }
   const [nome, setNome] = useState('');
   const [mensagem, setMensagem] = useState('');
+  const [telefone, setTelefone] = useState('');
   const [protocolo, setProtocolo] = useState('');
+
   const [consultaId, setConsultaId] = useState('');
   const [consultaStatus, setConsultaStatus] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -27,63 +30,94 @@ const App = () => {
   const [token, setToken] = useState('');
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [erro, setErro] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
+
 
   const criarTicket = async () => {
     setErro(null);
-    const res = await fetch(`${API_URL}/tickets`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, mensagem })
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/public/cases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: nome, email, phone_e164: telefone, description: mensagem })
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ error: 'Erro ao registrar' }));
+        setErro(error.error || 'Não foi possível registrar sua demanda.');
+        return;
+      }
+      const data = await res.json();
+      setProtocolo(data.protocol ?? data.protocolo ?? data.id ?? '');
+      setNome('');
+      setMensagem('');
+      setEmail('');
+      setTelefone('');
+    } catch (error) {
       setErro('Não foi possível registrar sua demanda.');
-      return;
     }
-    const data = await res.json();
-    setProtocolo(data.protocolo);
-    setNome('');
-    setMensagem('');
   };
+
 
   const consultarStatus = async () => {
     setErro(null);
-    const res = await fetch(`${API_URL}/tickets/${consultaId}`);
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/public/cases/${consultaId}`);
+      if (!res.ok) {
+        setErro('Protocolo não encontrado.');
+        return;
+      }
+      const data = await res.json();
+      setConsultaStatus(data.status ?? data.status ?? null);
+    } catch (error) {
       setErro('Protocolo não encontrado.');
-      return;
     }
-    const data = await res.json();
-    setConsultaStatus(data.status);
   };
+
 
   const autenticar = async () => {
     setErro(null);
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha })
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+      });
+      if (!res.ok) {
+        setErro('Credenciais inválidas.');
+        return;
+      }
+      const data = await res.json();
+      setToken(data.token);
+    } catch (error) {
       setErro('Credenciais inválidas.');
-      return;
     }
-    const data = await res.json();
-    setToken(data.token);
   };
 
   const carregarTickets = async () => {
     if (!token) return;
     setErro(null);
-    const res = await fetch(`${API_URL}/secretaria/tickets`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/cases`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        setErro('Não foi possível carregar tickets.');
+        return;
+      }
+      const data = await res.json();
+      setTickets((data.cases ?? []).map((item: any) => ({
+        id: item.id,
+        nome: item.citizen_name ?? 'Anônimo',
+        mensagem: item.protocol,
+        setor: item.secretariat_name ?? '-',
+        status: item.status,
+        created_at: item.created_at,
+      }))); 
+    } catch (error) {
       setErro('Não foi possível carregar tickets.');
-      return;
     }
-    const data = await res.json();
-    setTickets(data.tickets ?? []);
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -103,9 +137,21 @@ const App = () => {
           <div className="mt-4 space-y-3">
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2"
-              placeholder="Nome"
+              placeholder="Nome completo"
               value={nome}
               onChange={(event) => setNome(event.target.value)}
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+              placeholder="Email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+              placeholder="Telefone (E.164)"
+              value={telefone}
+              onChange={(event) => setTelefone(event.target.value)}
             />
             <textarea
               className="w-full rounded-lg border border-slate-200 px-3 py-2"
@@ -114,12 +160,19 @@ const App = () => {
               value={mensagem}
               onChange={(event) => setMensagem(event.target.value)}
             />
+
             <button
-              className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
               onClick={criarTicket}
+              disabled={!consent}
             >
               Enviar
             </button>
+            <label className="flex items-start gap-2 text-xs text-slate-500">
+              <input type="checkbox" className="mt-0.5" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+              Li e aceito a política de privacidade.
+            </label>
+
             {protocolo && (
               <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
                 Protocolo gerado: <strong>{protocolo}</strong>

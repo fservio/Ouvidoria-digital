@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import api from './api'
+import { api } from './api'
 
 const Login: React.FC<{ onLogin: (token: string) => void }> = ({ onLogin }) => {
   const [email, setEmail] = useState('')

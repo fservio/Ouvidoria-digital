@@ -16,10 +16,11 @@ export const authMiddleware: MiddlewareHandler = async (c, next) => {
 
 export const requireRole = (roles: string[]): MiddlewareHandler => {
   return async (c, next) => {
-    const user = c.get('user') as { papel: string }
-    if (!roles.includes(user.papel)) {
+    const user = c.get('user') as { role: string }
+    if (!roles.includes(user.role)) {
       return c.json({ error: 'Acesso negado' }, 403)
     }
     await next()
   }
 }
+

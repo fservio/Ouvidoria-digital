@@ -1,22 +1,24 @@
 name = "ouvidoria-digital"
 compatibility_date = "2026-01-09"
 compatibility_flags = ["nodejs_compat"]
-type = "javascript"
-main = "dist/index.js"
-node_compat = true
+main = "src/app.ts"
 workers_dev = true
-account_id = "SEU_ACCOUNT_ID"
-usage_model = "bundled"
-route = ""
-zone_id = ""
+account_id = "76f7ba3c1a37c9fc5a630148f0cb0843"
+# usage_model removed for wrangler v4
 
 [vars]
 JWT_SECRET = "4dahiJ2rsqS4SgaXcreNOkYOgUpENS"
+WEBHOOK_VERIFY_TOKEN = "ouvidoria_verify_token"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "ouvidoria_d1"
-database_id = "7c30213f-9abf-4e90-9d8f-d8e5f5a11375"
+database_id = "51e08cf8-109a-4904-b14f-cb2b1df5d01a"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "37b8a498e57b4869ae043a89ff4c56a0"
+
 
 [observability]
 enabled = false

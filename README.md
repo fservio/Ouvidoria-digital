@@ -1,195 +1,202 @@
-Ouvidoria Digital
+# Ouvidoria Digital - Teresina (Piloto)
 
-* Visão geral do projeto
-* Stack detalhada
-* Arquitetura
-* Comandos
-* Estrutura de pastas
-* Deploy com Wrangler
-* Ambiente e variáveis
-* Validação e testes
-* Roadmap
-* Licença
+Sistema de Ouvidoria Digital para o municipio de Teresina com recebimento de manifestacoes via WhatsApp, geracao de protocolos nao adivinhaveis e roteamento automatico para secretarias e filas.
 
----
+## Visao Geral
 
-```md
-# 📢 Ouvidoria Digital para Municípios
+- Canal principal: WhatsApp (Meta Cloud API)
+- Core standalone (sem e-Ouv por enquanto)
+- Casos com protocolo alto-entropia
+- Painel Admin para atendimento, roteamento e auditoria
+- Stack Cloudflare (Workers + Pages + D1 + R2 + KV + Queues)
+- n8n integrado via eventos com allowlist + HMAC
 
-Sistema de ouvidoria pública **inteligente e automatizado**, desenvolvido com **Cloudflare Workers**, **Hono**, **D1** e **GPT-4**, visando transformar a comunicação entre cidadãos e secretarias municipais.
+## Arquitetura
 
----
+Fluxo inbound:
 
-## 🧠 Visão Geral
+1. Cidadao envia mensagem no WhatsApp
+2. Meta Webhook -> Worker (valida assinatura, persiste, enfileira)
+3. Case criado com protocolo (alta entropia)
+4. Roteamento por regras deterministicas (DSL)
+5. (Opcional) evento para n8n com sugestoes
 
-A plataforma permite que o cidadão registre reclamações, sugestões ou dúvidas por meio de um formulário simples. A inteligência artificial classifica automaticamente o setor responsável (educação, saúde, infraestrutura, trânsito), gera respostas automáticas e direciona a demanda para o painel de gestão da secretaria correspondente.
+Fluxo outbound:
 
----
+1. Operador responde no Admin
+2. Mensagem enfileirada
+3. Worker envia via Meta API
 
-## 🚀 Stack Tecnológica
+## Estrutura de Pastas
 
-| Camada         | Tecnologia                             |
-|----------------|-----------------------------------------|
-| Frontend       | React + Tailwind (Cloudflare Pages)     |
-| API            | Hono (Node.js ESM)                      |
-| Backend infra  | Cloudflare Workers                      |
-| Banco de dados | D1 (SQLite edge)                        |
-| Cache          | KV (Rate limit, sessões, JWT)           |
-| IA             | GPT-4 via OpenAI API                    |
-| PDF            | jsPDF (client-side) ou edge generator   |
-| Auth           | JWT com RBAC (cidadão, secretaria, gestor) |
-| Automação opc. | n8n via Webhook (externo)               |
+- `apps/api` - Workers API (Hono)
+- `apps/web` - Pages admin (React)
+- `apps/api/schema.sql` - Schema D1 + seed
 
----
+## Configuracao Cloudflare (Setup Inicial)
 
-## 🧩 Funcionalidades
-
-### 🎫 Cidadão
-- Formulário com nome, mensagem e setor (opcional)
-- Upload de imagem (futuro)
-- Recebimento de número de protocolo
-- Acompanhamento via link ou código
-
-### 🏛️ Secretaria
-- Login seguro por JWT
-- Visualização de tickets filtrados
-- Atualização de status (em análise, resolvido)
-- Respostas geradas por IA
-- Geração de relatórios por período
-
-### 📈 Gestão
-- Painel com indicadores: SLA, demandas abertas, NPS
-- Exportação de relatórios em PDF
-- Visualização de desempenho por secretaria
-
----
-
-## 🏗️ Estrutura de Pastas
-
-```
-
-ouvidoria-digital/
-├── src/
-│   ├── app.ts                 # Entrypoint Hono
-│   ├── routes/                # Rotas da API
-│   ├── middleware/            # JWT, logs, rate limit
-│   ├── lib/                   # GPT, banco, utilitários
-│   ├── schema/                # Zod validation
-│   └── validate.ts            # Validação do projeto
-├── public/                    # Assets estáticos
-├── tests/                     # Testes unitários
-├── .github/workflows/ci.yml  # CI com Node.js
-├── wrangler.toml             # Configuração Cloudflare
-├── package.json
-├── tsconfig.json
-├── .eslintrc.cjs
-├── .prettierrc
-└── README.md
-
-````
-
----
-
-## 🧪 Validação Padrão
+### D1
 
 ```bash
-npm run validate
-````
-
-Executa:
-
-* TypeScript strict check (`tsc --noEmit`)
-* ESLint linting (`eslint .`)
-* Testes com cobertura (`vitest run --coverage`)
-* Valida variáveis de ambiente obrigatórias
-
----
-
-## ⚙️ Variáveis de Ambiente (`wrangler.toml`)
-
-```toml
-[vars]
-JWT_SECRET = "chave_segura"
-OPENAI_API_KEY = "sk-..."
+npx wrangler@latest d1 create ouvidoria_d1
+npx wrangler@latest d1 execute ouvidoria_d1 --remote --file schema.sql
 ```
 
----
-
-## 📦 Scripts Principais
+### KV
 
 ```bash
-npm install        # Instala dependências
-npm run dev        # Inicia API local com Miniflare
-npm run test       # Executa testes com Vitest
-npm run lint       # Lint com ESLint
-npm run validate   # Validação completa
+npx wrangler@latest kv namespace create OUVIDORIA_KV
 ```
 
----
+Atualize o `wrangler.toml` com o ID retornado.
 
-## 🛠️ Deploy
+### Queues
 
-### 🔧 Pré-requisitos
-
-* Conta no [Cloudflare](https://dash.cloudflare.com/)
-* Instalar CLI Wrangler: `npm i -g wrangler`
-
-### 🚀 Deploy API
+Requer Workers Paid plan.
 
 ```bash
-wrangler publish
+npx wrangler@latest queues create q_inbound_message_received
+npx wrangler@latest queues create q_outbound_message_send
+npx wrangler@latest queues create q_n8n_events
+npx wrangler@latest queues create q_sla_risk
 ```
 
-### 🌐 Deploy Frontend (se React SPA)
+Atualize o `wrangler.toml` com bindings e consumers.
+
+### R2
 
 ```bash
-cd frontend/
+npx wrangler@latest r2 bucket create ouvidoria-attachments
+```
+
+## Variaveis e Segredos
+
+### Variaveis (wrangler.toml)
+
+- `WEBHOOK_VERIFY_TOKEN`
+- `JWT_SECRET`
+
+### Segredos (wrangler)
+
+```bash
+npx wrangler@latest secret put JWT_SECRET
+npx wrangler@latest secret put WEBHOOK_VERIFY_TOKEN
+npx wrangler@latest secret put MASTER_KEY
+npx wrangler@latest secret put N8N_HMAC_SECRET
+```
+
+## Migrations e Seed
+
+O schema D1 em `apps/api/schema.sql` inclui:
+
+- 8 secretarias
+- 14 filas
+- 7 regras de roteamento
+- 7 regras de SLA
+- tags e tabelas auxiliares
+
+## Meta WhatsApp (Webhook)
+
+### Verificacao do Webhook
+
+URL:
+```
+https://<worker-url>/webhook/webhook
+```
+
+Parametros:
+- `hub.mode=subscribe`
+- `hub.verify_token=<WEBHOOK_VERIFY_TOKEN>`
+- `hub.challenge=<any>`
+
+### Assinatura
+
+Use o header `x-hub-signature-256` e valide com o `app_secret` do Meta.
+
+## n8n
+
+### Events Worker -> n8n
+
+- `inbound_message_received`
+- `sla_risk`
+- `daily_digest`
+
+Payload assinado via HMAC (`N8N_HMAC_SECRET` ou config no D1).
+
+### Actions n8n -> Worker
+
+Endpoint:
+```
+POST /webhook-n8n/actions
+```
+
+Headers:
+- `x-n8n-signature: <HMAC>`
+
+Allowlist configurado na tabela `integrations`.
+
+## Consulta Publica por Protocolo
+
+Endpoint:
+```
+GET /public/cases/:protocol
+```
+
+Retorna somente:
+- status
+- secretaria
+- fila
+- updated_at
+
+Rate limit via KV: 60 req/min por IP.
+
+## Runbook (Incidentes)
+
+### Webhook caiu
+- Verificar health do Worker
+- Verificar assinatura Meta
+- Verificar logs do Worker
+
+### Mensagens duplicando
+- Verificar dedupe por external_message_id
+- Verificar se fila esta reenfileirando
+
+### Falha de envio
+- Verificar Meta access_token
+- Verificar permissao do numero
+- Verificar logs do worker outbound
+
+### SLA estourando
+- Verificar filas e rules
+- Verificar queue SLA
+- Verificar integracao n8n
+
+## Deploy
+
+### API Worker
+
+```bash
+cd apps/api
+npx wrangler@latest deploy
+```
+
+### Admin Pages
+
+```bash
+cd apps/web
+npm install
 npm run build
-npx wrangler pages deploy dist --project-name ouvidoria-frontend
+npx wrangler@latest pages deploy dist --project-name ouvidoria-web
 ```
 
----
+## URLs
 
-## 🧪 Testes
+- API Worker: `https://ouvidoria-digital.fabioservio.workers.dev`
+- Admin Pages: `https://ouvidoria-web.pages.dev`
 
-Estrutura mínima:
+## Observacoes Importantes
 
-```
-tests/
-├── auth.test.ts
-├── tickets.test.ts
-├── db.test.ts
-```
-
-Cobertura esperada: **>85%**, incluindo caminhos de falha.
-
----
-
-## 🗺️ Roadmap
-
-* [x] MVP API (Tickets, Auth, Classificação IA)
-* [ ] Painel por secretaria (React SPA)
-* [ ] Geração de relatórios em PDF
-* [ ] Integração com WhatsApp via n8n
-* [ ] Dashboard com indicadores
-* [ ] Avaliação de satisfação por ticket
-* [ ] Multi-cidade (SaaS por município)
-
----
-
-## 🛡️ Licença
-
-MIT © 2026 - Ouvidoria Digital
-
----
-
-> Feito com ❤️ para transformar a escuta pública com tecnologia acessível e inteligente.
-
-```
-
----
-
-Esse `README.md` pode ser incluído no seu repositório GitHub e adaptado conforme o projeto evolui.
-
-Deseja que eu prepare um `repo.zip` inicial com essa estrutura? Ou quer que eu suba para um repositório se você me fornecer o nome e token temporário?
-```
+- Queues exigem plano pago.
+- PDF nao faz parte do MVP.
+- Segredos sao criptografados no D1 via MASTER_KEY.
+- Rate limit e sempre via KV (nao Turnstile no MVP).

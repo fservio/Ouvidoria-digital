@@ -1,1 +1,7 @@
 node_modules
+apps/api/dist/
+apps/web/dist/
+apps/api/worker-configuration.d.ts
+*.log
+tmp-*.json
+
