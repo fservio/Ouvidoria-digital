@@ -17,13 +17,16 @@ export interface CitizenLookupResult {
   conflict: boolean;
 }
 
-const PHONE_REGEX = /^\+[1-9]\d{7,14}$/;
+const PHONE_REGEX = /^\+[1-9]\d{1,14}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function normalizePhoneE164(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const normalized = trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
+  const normalized = trimmed.replace(/[()\s-]/g, '');
+  if (!normalized.startsWith('+')) {
+    return null;
+  }
   return PHONE_REGEX.test(normalized) ? normalized : null;
 }
 

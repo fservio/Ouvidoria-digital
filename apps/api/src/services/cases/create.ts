@@ -22,8 +22,9 @@ export async function createCaseFromMessage(
   const citizenPhone = message.from;
   const firstMessage = message.text?.body || `[${message.type}]`;
 
-  const phoneE164 = normalizePhoneE164(citizenPhone) || `+${citizenPhone}`;
-  const citizen = await findOrCreateCitizenByWhatsapp(env, message.from, phoneE164, citizenName);
+  const fallbackPhone = citizenPhone.startsWith('+') ? citizenPhone : `+${citizenPhone}`;
+  const phoneE164 = normalizePhoneE164(citizenPhone) || fallbackPhone;
+  const citizen = await findOrCreateCitizenByWhatsapp(env, message.from, normalizePhoneE164(phoneE164) || phoneE164, citizenName);
 
   const caseId = crypto.randomUUID();
 
