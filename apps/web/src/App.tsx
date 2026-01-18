@@ -39,7 +39,7 @@ const App = () => {
       const res = await fetch(`${API_URL}/api/v1/public/cases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: nome, email, phone_e164: telefone, description: mensagem })
+        body: JSON.stringify({ full_name: nome, email, phone_e164: telefone, description: mensagem, consent })
       });
       if (!res.ok) {
         const error = await res.json().catch(() => ({ error: 'Erro ao registrar' }));

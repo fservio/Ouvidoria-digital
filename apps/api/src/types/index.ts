@@ -9,6 +9,8 @@ export interface Env {
   MASTER_KEY: string;
   WEBHOOK_VERIFY_TOKEN?: string;
   N8N_HMAC_SECRET?: string;
+  PUBLIC_INTAKE_ENABLED?: string;
+  CITIZEN_EDIT_ENABLED?: string;
 }
 
 export interface Bindings {

@@ -7,11 +7,16 @@ const publicRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 publicRoutes.post('/cases', async (c) => {
   try {
+    if (c.env.PUBLIC_INTAKE_ENABLED === 'false') {
+      return c.json({ error: 'Intake desativado' }, 403);
+    }
+
     const body = await c.req.json();
     const nome = String(body.full_name || '').trim();
     const mensagem = String(body.description || '').trim();
     const emailRaw = String(body.email || '').trim();
     const phoneRaw = String(body.phone_e164 || '').trim();
+    const consent = body.consent === true;
 
     const email = normalizeEmail(emailRaw);
     const phone = normalizePhoneE164(phoneRaw);
@@ -20,8 +25,13 @@ publicRoutes.post('/cases', async (c) => {
       return c.json({ error: 'Dados inválidos' }, 400);
     }
 
+    if (!consent) {
+      return c.json({ error: 'Consentimento obrigatório' }, 400);
+    }
+
     const ip = c.req.header('CF-Connecting-IP') || 'unknown';
-    const rateKey = `rate_limit:public_cases:${ip}`;
+    const hour = new Date().toISOString().slice(0, 13);
+    const rateKey = `rl:public_cases:${ip}:${hour}`;
     const recent = await c.env.KV.get(rateKey);
     if (recent) {
       const count = parseInt(recent);

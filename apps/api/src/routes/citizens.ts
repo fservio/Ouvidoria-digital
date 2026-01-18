@@ -23,6 +23,10 @@ citizens.use('*', async (c, next) => {
 });
 
 citizens.put('/:id', zValidator('json', updateSchema), async (c) => {
+  if (c.env.CITIZEN_EDIT_ENABLED === 'false') {
+    return c.json({ error: 'Edição desativada' }, 403);
+  }
+
   const citizenId = c.req.param('id');
   const data = c.req.valid('json');
 
