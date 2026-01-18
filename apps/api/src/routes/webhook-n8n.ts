@@ -65,7 +65,7 @@ n8nWebhook.post('/actions', async (c) => {
       continue;
     }
 
-    if (!autoSendEnabled && (actionType === 'reply_external' || actionType === 'request_info')) {
+    if (!autoSendEnabled && actionType === 'reply_external') {
       await logAction(c.env.DB, 'integration', 'n8n', 'action_blocked', {}, null, { action: actionType });
       continue;
     }
