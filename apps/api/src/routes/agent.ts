@@ -4,6 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import type { Env, Variables } from '../types/index.js';
 import { sendN8nEvent } from '../services/n8n/dispatcher.js';
 import { logAction } from '../services/audit/logger.js';
+import { applyAgentActions } from '../services/agent.js';
 
 const agent = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -59,6 +60,11 @@ agent.post('/run', zValidator('json', runSchema), async (c) => {
     payload: requestPayload,
     created_at: new Date().toISOString(),
   });
+
+  await logAction(c.env.DB, 'agent_run', runId, 'agent.dispatch', {
+    userId: (c.get('user') as { id?: string })?.id,
+    ip: c.req.header('CF-Connecting-IP') || undefined,
+  }, null, { case_id, message_id });
 
   await logAction(c.env.DB, 'agent_run', runId, 'agent.run', {
     userId: (c.get('user') as { id?: string })?.id,

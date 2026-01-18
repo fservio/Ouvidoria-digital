@@ -9,7 +9,7 @@ import { sendOutboundMessage } from '../services/whatsapp/sender.js';
 const cases = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 const updateCaseSchema = z.object({
-  status: z.enum(['new', 'routing', 'assigned', 'in_progress', 'waiting_citizen', 'resolved', 'closed']).optional(),
+  status: z.enum(['new', 'routing', 'assigned', 'in_progress', 'waiting_citizen', 'resolved', 'closed', 'triage_human']).optional(),
   priority: z.enum(['low', 'normal', 'high', 'urgent']).optional(),
   queue_id: z.string().optional(),
   assigned_to: z.string().nullable().optional(),

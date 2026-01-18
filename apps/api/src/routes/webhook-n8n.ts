@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables } from '../types/index.js';
 import { logAction } from '../services/audit/logger.js';
 import { verifyN8nSignature } from '../services/n8n/crypto.js';
+import { applyAgentActions } from '../services/agent.js';
 
 const n8nWebhook = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -44,11 +45,16 @@ n8nWebhook.post('/actions', async (c) => {
   const allowed = config?.allowed_actions as string[] | undefined;
   const autoSendEnabled = Boolean((config as { auto_send_enabled?: boolean } | null)?.auto_send_enabled);
   const handoffThreshold = Number((config as { handoff_threshold?: number } | null)?.handoff_threshold ?? 0.7);
+  const agentEnabled = Boolean((config as { agent_enabled?: boolean } | null)?.agent_enabled);
+
+  if (!agentEnabled) {
+    return c.json({ error: 'Agent disabled' }, 403);
+  }
 
   const actions = Array.isArray(payload.actions) ? payload.actions : [payload];
   const applied: string[] = [];
-
   const confidence = typeof payload.confidence === 'number' ? payload.confidence : null;
+  const riskLevel = typeof payload.risk_level === 'string' ? payload.risk_level : null;
 
   for (const actionItem of actions) {
     const actionType = (actionItem as { type?: string }).type || action;
@@ -69,8 +75,24 @@ n8nWebhook.post('/actions', async (c) => {
       continue;
     }
 
-    await applyAction(actionType, actionItem as Record<string, unknown>, c.env);
-    applied.push(actionType);
+    const caseId = String((actionItem as Record<string, unknown>).case_id ?? payload.case_id ?? '');
+    const messageId = (actionItem as Record<string, unknown>).message_id as string | undefined;
+    const channel = (actionItem as Record<string, unknown>).channel as string | undefined;
+    const protocol = (actionItem as Record<string, unknown>).protocol as string | undefined;
+
+    const { applied: appliedActions } = await applyAgentActions(c.env, [{ type: actionType, ...actionItem as Record<string, unknown> }], {
+      caseId,
+      messageId,
+      channel: channel ?? null,
+      protocol: protocol ?? null,
+      allowedActions: allowed,
+      autoSendEnabled,
+      handoffThreshold,
+      confidence,
+      riskLevel,
+    });
+
+    applied.push(...appliedActions);
   }
 
   await logAction(c.env.DB, 'integration', 'n8n', 'action_applied', {

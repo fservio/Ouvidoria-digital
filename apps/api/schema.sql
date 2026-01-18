@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS cases (
   citizen_phone TEXT NOT NULL,
   citizen_name TEXT,
   citizen_email TEXT,
-  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'routing', 'assigned', 'in_progress', 'waiting_citizen', 'resolved', 'closed')),
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'routing', 'assigned', 'in_progress', 'waiting_citizen', 'resolved', 'closed', 'triage_human')),
   priority TEXT DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
   source TEXT DEFAULT 'whatsapp' CHECK (source IN ('whatsapp', 'phone', 'email', 'web', 'presencial')),
   channel TEXT DEFAULT 'whatsapp' CHECK (channel IN ('whatsapp', 'web', 'instagram')),

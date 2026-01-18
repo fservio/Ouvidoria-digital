@@ -40,6 +40,7 @@ export interface Case {
   citizen_phone: string;
   citizen_name: string | null;
   citizen_email: string | null;
+  channel?: 'whatsapp' | 'web' | 'instagram';
   status: CaseStatus;
   priority: CasePriority;
   source: CaseSource;
@@ -61,7 +62,8 @@ export type CaseStatus =
   | 'in_progress'
   | 'waiting_citizen'
   | 'resolved'
-  | 'closed';
+  | 'closed'
+  | 'triage_human';
 
 export type CasePriority = 'low' | 'normal' | 'high' | 'urgent';
 export type CaseSource = 'whatsapp' | 'phone' | 'email' | 'web' | 'presencial';
