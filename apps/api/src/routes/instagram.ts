@@ -4,6 +4,7 @@ import { verifyN8nSignature } from '../services/n8n/crypto.js';
 import { findOrCreateCitizenByInstagram, missingFieldsByChannel, mirrorCitizenToCase } from '../services/citizens.js';
 import { logAction } from '../services/audit/logger.js';
 import { sendN8nEvent } from '../services/n8n/dispatcher.js';
+import { decryptSecret } from '../utils/crypto.js';
 
 const instagram = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -14,8 +15,10 @@ instagram.post('/inbound', async (c) => {
   }
 
   const rawBody = await c.req.text();
-  const secret = c.env.N8N_HMAC_SECRET ?? '';
+  const config = await getN8nConfig(c.env.DB, c.env.MASTER_KEY);
+  const secret = c.env.N8N_HMAC_SECRET || String((config as { hmac_secret?: string } | null)?.hmac_secret ?? '');
   const ok = await verifyN8nSignature(rawBody, signature, secret);
+
   if (!ok) {
     await logAction(c.env.DB, 'webhook', 'instagram', 'invalid_signature', {});
     return c.json({ error: 'Invalid signature' }, 403);
@@ -96,5 +99,22 @@ instagram.post('/inbound', async (c) => {
 
   return c.json({ ok: true, case_id: caseId, protocol });
 });
+
+async function getN8nConfig(db: D1Database, masterKey: string): Promise<Record<string, unknown> | null> {
+  const result = await db
+    .prepare('SELECT config_encrypted FROM integrations WHERE name = ? AND is_active = 1')
+    .bind('n8n')
+    .first();
+
+  if (!result) return null;
+
+  const raw = String((result as { config_encrypted: string }).config_encrypted);
+  try {
+    const decrypted = await decryptSecret(raw, masterKey);
+    return JSON.parse(decrypted);
+  } catch {
+    return JSON.parse(raw);
+  }
+}
 
 export { instagram };
