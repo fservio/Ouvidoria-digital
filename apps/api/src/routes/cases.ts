@@ -35,7 +35,8 @@ cases.get('/', async (c) => {
   } = c.req.query();
 
   let query = `
-    SELECT c.*, q.name as queue_name, s.name as secretariat_name, s.code as secretariat_code
+    SELECT c.*, COALESCE(c.status_v2, c.status) AS status_effective,
+           q.name as queue_name, s.name as secretariat_name, s.code as secretariat_code
     FROM cases c
     LEFT JOIN queues q ON c.queue_id = q.id
     LEFT JOIN secretariats s ON q.secretariat_id = s.id
@@ -45,7 +46,7 @@ cases.get('/', async (c) => {
   const params: string[] = [];
 
   if (status) {
-    query += ' AND c.status = ?';
+    query += ' AND COALESCE(c.status_v2, c.status) = ?';
     params.push(status);
   }
 
@@ -116,15 +117,17 @@ cases.get('/:id', async (c) => {
 
   const caseResult = await c.env.DB
     .prepare(
-      `SELECT c.*, q.name as queue_name, s.name as secretariat_name, s.code as secretariat_code, s.id as secretariat_id,
+       `SELECT c.*, COALESCE(c.status_v2, c.status) AS status_effective,
+              q.name as queue_name, s.name as secretariat_name, s.code as secretariat_code, s.id as secretariat_id,
               cp.id as citizen_id, cp.full_name as citizen_full_name, cp.email as citizen_email,
               cp.phone_e164 as citizen_phone_e164, cp.whatsapp_wa_id as citizen_whatsapp_wa_id,
               cp.instagram_user_id as citizen_instagram_user_id, cp.instagram_username as citizen_instagram_username
-       FROM cases c
-       LEFT JOIN queues q ON c.queue_id = q.id
-       LEFT JOIN secretariats s ON q.secretariat_id = s.id
-       LEFT JOIN citizen_profiles cp ON c.citizen_id = cp.id
-       WHERE c.id = ?`
+        FROM cases c
+        LEFT JOIN queues q ON c.queue_id = q.id
+        LEFT JOIN secretariats s ON q.secretariat_id = s.id
+        LEFT JOIN citizen_profiles cp ON c.citizen_id = cp.id
+        WHERE c.id = ?`
+
     )
     .bind(caseId)
     .first();
@@ -189,6 +192,7 @@ cases.get('/:id', async (c) => {
 
   return c.json({
     ...caseResult,
+    status: (caseResult as { status_effective?: string }).status_effective ?? (caseResult as { status?: string }).status,
     citizen,
     agent_run: parsedAgent,
     messages: messagesResult.results,
