@@ -1,5 +1,6 @@
 import type { Env } from '../../types/index.js';
 import { signN8nPayload } from './crypto.js';
+import { decryptSecret } from '../../utils/crypto.js';
 
 export interface N8nEvent {
   event_type: string;
@@ -8,13 +9,13 @@ export interface N8nEvent {
 }
 
 export async function sendN8nEvent(env: Env, event: N8nEvent) {
-  const config = await getN8nConfig(env.DB);
+  const config = await getN8nConfig(env.DB, env.MASTER_KEY);
   if (!config || !config.endpoint_url) {
     return;
   }
 
   const body = JSON.stringify(event);
-  const signature = await signN8nPayload(body, env.N8N_HMAC_SECRET ?? config.hmac_secret ?? '');
+  const signature = await signN8nPayload(body, env.N8N_HMAC_SECRET || config.hmac_secret || '');
 
   await fetch(config.endpoint_url, {
     method: 'POST',
@@ -26,7 +27,7 @@ export async function sendN8nEvent(env: Env, event: N8nEvent) {
   });
 }
 
-async function getN8nConfig(db: D1Database): Promise<{ endpoint_url?: string; hmac_secret?: string; allowed_actions?: string[] } | null> {
+async function getN8nConfig(db: D1Database, masterKey: string): Promise<{ endpoint_url?: string; hmac_secret?: string; allowed_actions?: string[] } | null> {
   const result = await db
     .prepare('SELECT config_encrypted FROM integrations WHERE name = ? AND is_active = 1')
     .bind('n8n')
@@ -34,5 +35,11 @@ async function getN8nConfig(db: D1Database): Promise<{ endpoint_url?: string; hm
 
   if (!result) return null;
 
-  return JSON.parse(String(result.config_encrypted));
+  const raw = String((result as { config_encrypted: string }).config_encrypted);
+  try {
+    const decrypted = await decryptSecret(raw, masterKey);
+    return JSON.parse(decrypted);
+  } catch {
+    return JSON.parse(raw);
+  }
 }

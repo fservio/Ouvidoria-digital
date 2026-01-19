@@ -215,7 +215,7 @@ integrations.post('/n8n/test', async (c) => {
   try {
     const testPayload = { event_type: 'test_connection', payload: { timestamp: new Date().toISOString() } };
     const body = JSON.stringify(testPayload);
-    const signature = await signN8nPayload(body, c.env.N8N_HMAC_SECRET ?? config.hmac_secret ?? '');
+    const signature = await signN8nPayload(body, c.env.N8N_HMAC_SECRET || config.hmac_secret || '');
 
     const response = await fetch(config.endpoint_url, {
       method: 'POST',

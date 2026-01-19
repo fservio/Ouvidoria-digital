@@ -14,7 +14,8 @@ instagram.post('/inbound', async (c) => {
   }
 
   const rawBody = await c.req.text();
-  const ok = await verifyN8nSignature(rawBody, signature, c.env.N8N_HMAC_SECRET ?? '');
+  const secret = c.env.N8N_HMAC_SECRET ?? '';
+  const ok = await verifyN8nSignature(rawBody, signature, secret);
   if (!ok) {
     await logAction(c.env.DB, 'webhook', 'instagram', 'invalid_signature', {});
     return c.json({ error: 'Invalid signature' }, 403);

@@ -15,6 +15,7 @@ const updateCaseSchema = z.object({
   assigned_to: z.string().nullable().optional(),
 });
 
+
 cases.get('/', async (c) => {
   const user = c.get('user') as { role: string; secretariat_id?: string | null; id: string } | null;
   if (!user) {

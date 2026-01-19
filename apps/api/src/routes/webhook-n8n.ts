@@ -3,6 +3,7 @@ import type { Env, Variables } from '../types/index.js';
 import { logAction } from '../services/audit/logger.js';
 import { verifyN8nSignature } from '../services/n8n/crypto.js';
 import { applyAgentActions } from '../services/agent.js';
+import { decryptSecret } from '../utils/crypto.js';
 
 const n8nWebhook = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -13,7 +14,9 @@ n8nWebhook.post('/actions', async (c) => {
   }
 
   const rawBody = await c.req.text();
-  const ok = await verifyN8nSignature(rawBody, signature, c.env.N8N_HMAC_SECRET ?? '');
+  const config = await getN8nConfig(c.env.DB, c.env.MASTER_KEY);
+  const secret = c.env.N8N_HMAC_SECRET || String((config as { hmac_secret?: string } | null)?.hmac_secret ?? '');
+  const ok = await verifyN8nSignature(rawBody, signature, secret);
   if (!ok) {
     await logAction(c.env.DB, 'integration', 'n8n', 'invalid_signature', {});
     return c.json({ error: 'Invalid signature' }, 403);
@@ -33,7 +36,7 @@ n8nWebhook.post('/actions', async (c) => {
     return c.json({ error: 'Invalid payload' }, 400);
   }
 
-  const allowlist = await getAllowlist(c.env.DB);
+  const allowlist = await getAllowlist(c.env.DB, c.env.MASTER_KEY);
   if (action && !allowlist.includes(action)) {
     await logAction(c.env.DB, 'integration', 'n8n', 'action_blocked', {}, null, {
       action,
@@ -41,8 +44,7 @@ n8nWebhook.post('/actions', async (c) => {
     return c.json({ error: 'Action not allowed' }, 403);
   }
 
-  const config = await getN8nConfig(c.env.DB);
-  const allowed = config?.allowed_actions as string[] | undefined;
+  const allowed = (config as { allowed_actions?: string[] } | null)?.allowed_actions;
   const autoSendEnabled = Boolean((config as { auto_send_enabled?: boolean } | null)?.auto_send_enabled);
   const handoffThreshold = Number((config as { handoff_threshold?: number } | null)?.handoff_threshold ?? 0.7);
   const agentEnabled = Boolean((config as { agent_enabled?: boolean } | null)?.agent_enabled);
@@ -102,19 +104,13 @@ n8nWebhook.post('/actions', async (c) => {
   return c.json({ ok: true, actions_applied: applied });
 });
 
-async function getAllowlist(db: D1Database): Promise<string[]> {
-  const result = await db
-    .prepare('SELECT config_encrypted FROM integrations WHERE name = ? AND is_active = 1')
-    .bind('n8n')
-    .first();
-
-  if (!result) return [];
-
-  const config = JSON.parse(String(result.config_encrypted));
-  return config.allowed_actions ?? [];
+async function getAllowlist(db: D1Database, masterKey: string): Promise<string[]> {
+  const config = await getN8nConfig(db, masterKey);
+  if (!config) return [];
+  return (config.allowed_actions as string[]) ?? [];
 }
 
-async function getN8nConfig(db: D1Database): Promise<Record<string, unknown> | null> {
+async function getN8nConfig(db: D1Database, masterKey: string): Promise<Record<string, unknown> | null> {
   const result = await db
     .prepare('SELECT config_encrypted FROM integrations WHERE name = ? AND is_active = 1')
     .bind('n8n')
@@ -122,7 +118,13 @@ async function getN8nConfig(db: D1Database): Promise<Record<string, unknown> | n
 
   if (!result) return null;
 
-  return JSON.parse(String(result.config_encrypted));
+  const raw = String((result as { config_encrypted: string }).config_encrypted);
+  try {
+    const decrypted = await decryptSecret(raw, masterKey);
+    return JSON.parse(decrypted);
+  } catch {
+    return JSON.parse(raw);
+  }
 }
 
 async function applyAction(action: string, data: Record<string, unknown>, env: Env) {
