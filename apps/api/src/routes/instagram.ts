@@ -63,7 +63,10 @@ instagram.post('/inbound', async (c) => {
     .bind(caseId, protocol, citizen.id, citizen.full_name, citizen.email, citizenPhone, JSON.stringify({ source: 'instagram' }))
     .run();
 
-  await mirrorCitizenToCase(c.env, caseId, citizen);
+  await mirrorCitizenToCase(c.env, caseId, {
+    ...citizen,
+    phone_e164: citizenPhone,
+  });
 
   await c.env.DB
     .prepare(
