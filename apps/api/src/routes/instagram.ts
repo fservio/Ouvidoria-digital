@@ -57,8 +57,9 @@ instagram.post('/inbound', async (c) => {
 
   await c.env.DB
     .prepare(
-      `INSERT INTO cases (id, protocol, citizen_id, citizen_name, citizen_email, citizen_phone, status, source, channel, metadata)
-       VALUES (?, ?, ?, ?, ?, ?, 'new', 'instagram', 'instagram', ?)`
+       `INSERT INTO cases (id, protocol, citizen_id, citizen_name, citizen_email, citizen_phone, status, source, channel, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, 'new', 'web', 'instagram', ?)`
+
     )
     .bind(caseId, protocol, citizen.id, citizen.full_name, citizen.email, citizenPhone, JSON.stringify({ source: 'instagram' }))
     .run();
