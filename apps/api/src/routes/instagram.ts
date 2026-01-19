@@ -50,6 +50,7 @@ instagram.post('/inbound', async (c) => {
   }
 
   const citizen = await findOrCreateCitizenByInstagram(c.env, instagramUserId, instagramUsername);
+  const citizenPhone = citizen.phone_e164 || `ig:${instagramUserId}`;
 
   const caseId = crypto.randomUUID();
   const protocol = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
@@ -59,7 +60,7 @@ instagram.post('/inbound', async (c) => {
       `INSERT INTO cases (id, protocol, citizen_id, citizen_name, citizen_email, citizen_phone, status, source, channel, metadata)
        VALUES (?, ?, ?, ?, ?, ?, 'new', 'instagram', 'instagram', ?)`
     )
-    .bind(caseId, protocol, citizen.id, citizen.full_name, citizen.email, citizen.phone_e164, JSON.stringify({ source: 'instagram' }))
+    .bind(caseId, protocol, citizen.id, citizen.full_name, citizen.email, citizenPhone, JSON.stringify({ source: 'instagram' }))
     .run();
 
   await mirrorCitizenToCase(c.env, caseId, citizen);
