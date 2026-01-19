@@ -47,6 +47,9 @@ app.use('/api/v1/*', async (c, next) => {
   if (c.req.path.startsWith('/api/v1/public/')) {
     return next();
   }
+  if (c.req.path.startsWith('/api/v1/webhooks/')) {
+    return next();
+  }
   return authMiddleware(c, next);
 });
 
