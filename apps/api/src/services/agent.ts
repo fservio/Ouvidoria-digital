@@ -76,7 +76,7 @@ export async function applyAgentActions(env: Env, actions: AgentAction[], option
       if (typeof action.status === 'string') {
         const needsHuman = action.status === 'triage_human' ? 1 : 0;
         await env.DB
-          .prepare('UPDATE cases SET status = ?, needs_human = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+          .prepare('UPDATE cases SET status_v2 = ?, needs_human = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
           .bind(action.status, needsHuman, options.caseId)
           .run();
         applied.push(type);

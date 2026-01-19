@@ -360,7 +360,7 @@ cases.post('/:id/messages', zValidator('json', z.object({
   const { text, kind } = c.req.valid('json');
 
   const caseData = await c.env.DB
-    .prepare('SELECT * FROM cases WHERE id = ?')
+    .prepare('SELECT *, COALESCE(status_v2, status) AS status_effective FROM cases WHERE id = ?')
     .bind(caseId)
     .first();
 
